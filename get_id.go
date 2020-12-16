@@ -10,7 +10,7 @@ import (
 )
 
 type Article struct {
-	Id      string `json:"id"`
+	Id      string `json:"Id"`
 	Title   string `json:"Title"`
 	Desc    string `json:"desc"`
 	Content string `json:"content"`
@@ -18,26 +18,32 @@ type Article struct {
 
 var Articles []Article
 
-func addArticle(w http.ResponseWriter, r *http.Request) {
-
-	var newItem Article
-	json.NewDecoder(r.Body).Decode(&newItem)
-	Articles = append(Articles, newItem)
-
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(Articles)
+func homepage(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Welcome to HomePage")
+	fmt.Println("Endpoint Hit: homePage")
 }
-func handleRequests() {
-	myRouter := mux.NewRouter().StrictSlash(true)
 
-	myRouter.HandleFunc("/add", addArticle).Methods("POST")
-	log.Fatal(http.ListenAndServe(":8000", myRouter))
+func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key := vars["id"]
+
+	for _, article := range Articles {
+		if article.Id == key {
+			json.NewEncoder(w).Encode(article)
+		}
+	}
+}
+
+func handleRequests() {
+
+	myRouter := mux.NewRouter().StrictSlash(true)
+	myRouter.HandleFunc("/", homepage)
+	myRouter.HandleFunc("/article/{id}", returnSingleArticle)
+	log.Fatal(http.ListenAndServe(":8080", myRouter))
 }
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
-
 	Articles = []Article{
 		Article{Id: "1", Title: "Hello", Desc: "Article Description1", Content: "Article Content"},
 		Article{Id: "2", Title: "Hello 2", Desc: "Article Description2", Content: "Article Content"},
